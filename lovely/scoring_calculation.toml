@@ -3,12 +3,42 @@ version = "1.0.0"
 dump_lua = true
 priority = -10
 
+#
+# context.modify_hand_chips START
+#
+
+# Calculate hand score just once
+# Allow game objects to modify final score given by played hand
+[[patches]]
+[patches.pattern]
+target = "functions/state_events.lua"
+pattern = '''
+G.E_MANAGER:add_event(Event({
+    trigger = 'after',delay = 0.4,'''
+position = "before"
+payload = '''
+local final_hand_chips = SMODS.calculate_round_score()
+
+local hand_chips_context = {modify_hand_chips = true, hand_chips = hand_chips}
+SMODS.calculate_context(hand_chips_context)
+
+-- TODO support effects (this is very early impl)
+
+final_hand_chips = hand_chips_context.hand_chips
+'''
+match_indent = true
+
+# Use final_hand_chips value everywhere
 [[patches]]
 [patches.regex]
 target = "functions/state_events.lua"
 pattern = "^(.*)hand_chips\\s*\\*\\s*mult(.*)$"
 position = "at"
-payload = '''$1 SMODS.calculate_round_score() $2'''
+payload = '''$1 final_hand_chips $2'''
+
+#
+# context.modify_hand_chips END
+#
 
 [[patches]]
 [patches.pattern]
@@ -206,7 +236,7 @@ pattern = '''
 delay(0.3)
 '''
 payload = '''
-    SMODS.last_hand_oneshot = SMODS.calculate_round_score() > G.GAME.blind.chips
+    SMODS.last_hand_oneshot = final_hand_chips > G.GAME.blind.chips
     G.E_MANAGER:add_event(Event({
       trigger = 'immediate',
       func = (function() 
