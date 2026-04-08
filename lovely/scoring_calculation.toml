@@ -19,12 +19,17 @@ position = "before"
 payload = '''
 local final_hand_chips = SMODS.calculate_round_score()
 
-local hand_chips_context = {modify_hand_chips = true, hand_chips = hand_chips}
+local hand_chips_context = {
+    modify_hand_chips = true,
+    blind_chips = G.GAME.blind.chips,
+    hand_chips = final_hand_chips
+}
 SMODS.calculate_context(hand_chips_context)
 
 -- TODO support effects (this is very early impl)
 
 final_hand_chips = hand_chips_context.hand_chips
+
 '''
 match_indent = true
 
