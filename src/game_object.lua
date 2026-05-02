@@ -74,7 +74,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         local atlas_cfg = obj.prefix_config.atlas
         if atlas_cfg ~= false then
             if type(atlas_cfg) ~= 'table' then atlas_cfg = {} end
-            for _, v in ipairs({ 'atlas', 'hc_atlas', 'lc_atlas', 'hc_ui_atlas', 'lc_ui_atlas', 'sticker_atlas' }) do
+            for _, v in ipairs({ 'atlas', 'hc_atlas', 'lc_atlas', 'hc_ui_atlas', 'lc_ui_atlas', 'soul_atlas', 'hc_soul_atlas', 'lc_soul_atlas', 'sticker_atlas' }) do
                 if rawget(obj, v) then SMODS.modify_key(obj, mod and mod.prefix, atlas_cfg, v) end
             end
         end
@@ -1206,6 +1206,9 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
                     end
                 end
             end
+            if self.soul_atlas and not self.soul_pos then
+                self.soul_pos = { x = 0, y = 0 }
+            end
         end,
         delete = function(self)
             G.P_CENTERS[self.key] = nil
@@ -1254,14 +1257,14 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             end
 
             if desc_nodes == full_UI_table.main and not full_UI_table.name then
-                full_UI_table.name = self.set == 'Enhanced' and 'temp_value' or localize { type = 'name', set = target.set, key = res.name_key or target.key, nodes = full_UI_table.name, vars = res.name_vars or target.vars or {} }
+                full_UI_table.name = self.set == 'Enhanced' and 'temp_value' or localize { type = 'name', set = res.name_set or target.set, key = res.name_key or target.key, nodes = full_UI_table.name, vars = res.name_vars or target.vars or {} }
             elseif desc_nodes ~= full_UI_table.main and not desc_nodes.name then
-                desc_nodes.name = localize{type = 'name_text', key = res.name_key or target.key, set = target.set }
-                if (full_UI_table.from_detailed_tooltip and full_UI_table.info[1] == desc_nodes) 
+                desc_nodes.name = localize{type = 'name_text', key = res.name_key or target.key, set = res.name_set or target.set }
+                if (not full_UI_table.from_detailed_tooltip or full_UI_table.info[1] == desc_nodes) 
                     and not full_UI_table.no_styled_name then
                     desc_nodes.name_styled = {}
     
-                    localize{type = 'name', key = res.name_key or target.key, set = target.set, nodes = desc_nodes.name_styled, fixed_scale = 0.63, no_pop_in = true, no_shadow = true, y_offset = 0, no_spacing = true, no_bump = true, vars = target.vars} 
+                    localize{type = 'name', key = res.name_key or target.key, set = res.name_set or target.set, nodes = desc_nodes.name_styled, fixed_scale = 0.63, no_pop_in = true, no_shadow = true, y_offset = 0, no_spacing = true, no_bump = true, vars = res.name_vars or target.vars} 
                     desc_nodes.name_styled = SMODS.info_queue_desc_from_rows(desc_nodes.name_styled, true)
                     desc_nodes.name_styled.config.align = "cm"
                 end
@@ -1502,11 +1505,11 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
                 full_UI_table.name = localize{type = 'name', set = 'Other', key = res.name_key or target.key, nodes = full_UI_table.name, vars = res.name_vars or target.vars or {}}
             elseif desc_nodes ~= full_UI_table.main and not desc_nodes.name then
                 desc_nodes.name = localize { type = 'name_text', key = res.name_key or target.key, set = 'Other' }
-                if (full_UI_table.from_detailed_tooltip and full_UI_table.info[1] == desc_nodes) 
+                if (not full_UI_table.from_detailed_tooltip or full_UI_table.info[1] == desc_nodes) 
                     and not full_UI_table.no_styled_name then
                     desc_nodes.name_styled = {}
 
-                    localize{type = 'name', key = res.name_key or target.key, set = 'Other', nodes = desc_nodes.name_styled, fixed_scale = 0.63, no_pop_in = true, no_shadow = true, y_offset = 0, no_spacing = true, no_bump = true, vars = target.vars} 
+                    localize{type = 'name', key = res.name_key or target.key, set = 'Other', nodes = desc_nodes.name_styled, fixed_scale = 0.63, no_pop_in = true, no_shadow = true, y_offset = 0, no_spacing = true, no_bump = true, vars = res.name_vars or target.vars} 
                     desc_nodes.name_styled = SMODS.info_queue_desc_from_rows(desc_nodes.name_styled, true)
                     desc_nodes.name_styled.config.align = "cm"
                 end
@@ -1794,6 +1797,15 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
     SMODS.UndiscoveredSprite { key = 'Voucher', atlas = 'Voucher', pos = G.v_undiscovered.pos }
     SMODS.UndiscoveredSprite { key = 'Booster', atlas = 'Booster', pos = G.booster_undiscovered.pos }
 
+    
+
+SMODS.UndiscoveredCompat = {
+    Joker = true,
+    Edition = true,
+    Voucher = true,
+    Booster = true,
+}
+
     -------------------------------------------------------------------------------------------------
     ----- API CODE GameObject.Blind
     -------------------------------------------------------------------------------------------------
@@ -1916,14 +1928,14 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
                 target.text_colour = res.text_colour
             end
             if desc_nodes == full_UI_table.main and not full_UI_table.name then
-                full_UI_table.name = localize { type = 'name', set = target.set, key = res.name_key or target.key, nodes = full_UI_table.name, vars = res.name_vars or target.vars or {} }
+                full_UI_table.name = localize { type = 'name', set = res.name_set or target.set, key = res.name_key or target.key, nodes = full_UI_table.name, vars = res.name_vars or target.vars or {} }
             elseif desc_nodes ~= full_UI_table.main and not desc_nodes.name then
-                desc_nodes.name = localize{type = 'name_text', key = res.name_key or target.key, set = target.set }
-                if (full_UI_table.from_detailed_tooltip and full_UI_table.info[1] == desc_nodes) 
+                desc_nodes.name = localize{type = 'name_text', key = res.name_key or target.key, set = res.name_set or target.set }
+                if (not full_UI_table.from_detailed_tooltip or full_UI_table.info[1] == desc_nodes) 
                     and not full_UI_table.no_styled_name then
                     desc_nodes.name_styled = {}
 
-                    localize{type = 'name', key = res.name_key or target.key, set = target.set, nodes = desc_nodes.name_styled, fixed_scale = 0.63, no_pop_in = true, no_shadow = true, y_offset = 0, no_spacing = true, no_bump = true, vars = target.vars} 
+                    localize{type = 'name', key = res.name_key or target.key, set = res.name_set or target.set, nodes = desc_nodes.name_styled, fixed_scale = 0.63, no_pop_in = true, no_shadow = true, y_offset = 0, no_spacing = true, no_bump = true, vars = res.name_vars or target.vars} 
                     desc_nodes.name_styled = SMODS.info_queue_desc_from_rows(desc_nodes.name_styled, true)
                     desc_nodes.name_styled.config.align = "cm"
                 end
@@ -3067,14 +3079,14 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
                 end
             end
             if desc_nodes == full_UI_table.main and not full_UI_table.name then
-                full_UI_table.name = localize { type = 'name', set = target.set, key = res.name_key or target.key, nodes = full_UI_table.name, vars = res.name_vars or res.vars or {} }
+                full_UI_table.name = localize { type = 'name', set = res.name_set or target.set, key = res.name_key or target.key, nodes = full_UI_table.name, vars = res.name_vars or res.vars or {} }
             elseif desc_nodes ~= full_UI_table.main and not desc_nodes.name then
-                desc_nodes.name = localize{type = 'name_text', key = res.name_key or target.key, set = target.set }
-                if (full_UI_table.from_detailed_tooltip and full_UI_table.info[1] == desc_nodes) 
+                desc_nodes.name = localize{type = 'name_text', key = res.name_key or target.key, set = res.name_set or target.set }
+                if (not full_UI_table.from_detailed_tooltip or full_UI_table.info[1] == desc_nodes) 
                     and not full_UI_table.no_styled_name then
                     desc_nodes.name_styled = {}
 
-                    localize{type = 'name', key = res.name_key or target.key, set = target.set, nodes = desc_nodes.name_styled, fixed_scale = 0.63, no_pop_in = true, no_shadow = true, y_offset = 0, no_spacing = true, no_bump = true, vars = target.vars} 
+                    localize{type = 'name', key = res.name_key or target.key, set = res.name_set or target.set, nodes = desc_nodes.name_styled, fixed_scale = 0.63, no_pop_in = true, no_shadow = true, y_offset = 0, no_spacing = true, no_bump = true, vars = target.vars} 
                     desc_nodes.name_styled = SMODS.info_queue_desc_from_rows(desc_nodes.name_styled, true)
                     desc_nodes.name_styled.config.align = "cm"
                 end
@@ -3372,16 +3384,19 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         inject = function(self)
             self.full_path = (self.mod and self.mod.path or SMODS.path) ..
                 'assets/shaders/' .. self.path
+
             local file = assert(NFS.read(self.full_path),
                 ('Failed to collect file data for Shader %s'):format(self.key))
+
             local lovely_success, lovely = pcall(require, "lovely")
             if lovely_success and lovely.apply_patches then
-                file = assert(lovely.apply_patches("=[SMODS " .. self.mod.id .. ' "' .. self.path .. '"]', file))
+                file = assert(lovely.apply_patches(
+                    "=[SMODS " .. self.mod.id .. ' "' .. self.path .. '"]',
+                    file
+                ))
             end
-            love.filesystem.write(self.key .. "-temp.fs", file)
-            G.SHADERS[self.key] = love.graphics.newShader(self.key .. "-temp.fs")
-            love.filesystem.remove(self.key .. "-temp.fs")
-            -- G.SHADERS[self.key] = love.graphics.newShader(self.full_path)
+            
+            G.SHADERS[self.key] = love.graphics.newShader(file)
         end,
         process_loc_text = function() end
     }
@@ -3408,6 +3423,10 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
                 self.shader = self.key
             end
         end,
+        draw = function(self, shader, canvas)
+            love.graphics.setShader(shader)
+            love.graphics.draw(canvas, 0, 0)
+        end,
         post_inject_class = function(self)
             table.sort(self.obj_buffer, function(_self, _other) return self.obj_table[_self].order < self.obj_table[_other].order end)
         end,
@@ -3424,7 +3443,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
                 ['feather_fac'] = 0.01,
                 ['bloom_fac'] = G.SETTINGS.GRAPHICS.bloom - 1,
                 ['time'] = 400 + G.TIMERS.REAL,
-                ['noise_fac'] = 0.001*crt/100,
+                -- ['noise_fac'] = 0.001*crt/100, -- removed for mobile compat
                 ['crt_intensity'] = 0.16*crt/100,
                 ['glitch_intensity'] = 0,
                 ['scanlines'] = G.CANVAS:getPixelHeight()*0.75/G.CANV_SCALE,
@@ -3434,6 +3453,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             }
         end,
         order = 0, -- not necessary, but explicitly set in this example for clarity
+        should_apply = function(self) return not G.recording_mode or G.video_control end,
     }
 
     -------------------------------------------------------------------------------------------------
@@ -3792,7 +3812,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
                 if effect.card and effect.card ~= scored_card then juice_card(effect.card) end
                 self:modify(amount)
                 card_eval_status_text(scored_card, 'extra', nil, percent, nil, 
-                    {message = localize{type = 'variable', key = amount > 0 and 'a_chips' or 'a_chips_minus', vars = {amount}}, colour = self.colour})
+                    {message = localize{type = 'variable', key = amount > 0 and 'a_chips' or 'a_chips_minus', vars = {math.abs(amount)}}, colour = self.colour})
                 return true
             end
         end
@@ -3802,7 +3822,6 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         key = 'chips',
         default_value = 0,
         colour = G.C.UI_CHIPS,
-        juice_on_update = true,
         calculation_keys = {'chips', 'h_chips', 'chip_mod', 'x_chips', 'xchips', 'Xchip_mod',},
         calc_effect = function(self, effect, scored_card, key, amount, from_edition)
             if not SMODS.Calculation_Controls.chips then return end
@@ -3811,7 +3830,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
                 self:modify(amount)
                 if not effect.remove_default_message then
                     if from_edition then
-                        card_eval_status_text(scored_card, 'jokers', nil, percent, nil, {message = localize{type = 'variable', key = amount > 0 and 'a_chips' or 'a_chips_minus', vars = {amount}}, chip_mod = amount, colour = G.C.EDITION, edition = true})
+                        card_eval_status_text(scored_card, 'jokers', nil, percent, nil, {message = localize{type = 'variable', key = amount > 0 and 'a_chips' or 'a_chips_minus', vars = {math.abs(amount)}}, chip_mod = amount, colour = G.C.EDITION, edition = true})
                     else
                         if key ~= 'chip_mod' then
                             if effect.chip_message then
@@ -3829,7 +3848,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
                 self:modify(hand_chips * (amount - 1))
                 if not effect.remove_default_message then
                     if from_edition then
-                        card_eval_status_text(scored_card, 'jokers', nil, percent, nil, {message = localize{type='variable',key= amount > 0 and 'a_xchips' or 'a_xchips_minus',vars={amount}}, Xchips_mod =  amount, colour =  G.C.EDITION, edition = true})
+                        card_eval_status_text(scored_card, 'jokers', nil, percent, nil, {message = localize{type='variable',key= amount > 0 and 'a_xchips' or 'a_xchips_minus',vars={math.abs(amount)}}, Xchips_mod =  amount, colour =  G.C.EDITION, edition = true})
                     else
                         if key ~= 'Xchip_mod' then
                             if effect.xchip_message then
@@ -3863,7 +3882,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
                 self:modify(amount)
                 if not effect.remove_default_message then
                     if from_edition then
-                        card_eval_status_text(scored_card, 'jokers', nil, percent, nil, {message = localize{type = 'variable', key = amount > 0 and 'a_mult' or 'a_mult_minus', vars = {amount}}, mult_mod = amount, colour = G.C.DARK_EDITION, edition = true})
+                        card_eval_status_text(scored_card, 'jokers', nil, percent, nil, {message = localize{type = 'variable', key = amount > 0 and 'a_mult' or 'a_mult_minus', vars = {math.abs(amount)}}, mult_mod = amount, colour = G.C.DARK_EDITION, edition = true})
                     else
                         if key ~= 'mult_mod' then
                             if effect.mult_message then
